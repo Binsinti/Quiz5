@@ -42,13 +42,14 @@ class CustomLoginView(LoginView):
 
 
 class CustomLogoutView(RedirectView):
-    
+    # Redirect to custom signin page after logout
+    url = '/auth/signin/'
+
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated:
             user_name = request.user.get_full_name() or request.user.email
             logout(request)
             messages.success(request, f'You have been successfully signed out. See you later, {user_name}!')
-        
         return super().get(request, *args, **kwargs)
     
     def post(self, request, *args, **kwargs):
@@ -110,6 +111,9 @@ class TeacherProfileView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             # Basic exam stats
             total_attempts = exam_submissions.count()
             
+            # Always define allocated_time_minutes for each exam
+            allocated_time_minutes = exam.duration_minutes
+
             if total_attempts > 0:
                 # Pass/fail analysis
                 passed_count = exam_submissions.filter(
@@ -128,7 +132,6 @@ class TeacherProfileView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                     avg_time=Avg('time_taken')
                 )['avg_time']
                 
-                allocated_time_minutes = exam.duration_minutes
                 avg_time_minutes = 0
                 time_efficiency = 0
                 
@@ -212,6 +215,15 @@ class StudentProfileView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             is_completed=True
         ).select_related('exam').order_by('-submitted_at')
         
+        # Calculate total exams taken
+        total_exams_taken = all_submissions.count()
+
+        # Calculate statistics for student profile
+        total_exams = all_submissions.values('exam').distinct().count()
+        passed_exams = all_submissions.filter(percentage__gte=60).values('exam').distinct().count()  # Assuming 60% is passing
+        failed_exams = total_exams - passed_exams
+        pass_rate = (passed_exams / total_exams * 100) if total_exams > 0 else 0
+
         # Calculate average score
         if total_exams_taken > 0:
             avg_score = all_submissions.aggregate(
@@ -223,7 +235,6 @@ class StudentProfileView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         
         # Get recent exam history (last 10)
         recent_submissions = all_submissions[:10]
-        
         
         # Get performance by exam
         exam_performance = []
@@ -246,6 +257,10 @@ class StudentProfileView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         
         context.update({
             'student': student,
+            'total_exams': total_exams,
+            'passed_exams': passed_exams,
+            'failed_exams': failed_exams,
+            'pass_rate': round(pass_rate, 1),
             'avg_score': avg_score,
             'recent_submissions': recent_submissions,
             'exam_performance': exam_performance,

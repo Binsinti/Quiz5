@@ -19,10 +19,8 @@ from .models import (
     ExamSubmission, StudentAnswer
 )
 
-User = get_user_model()
-
-
-
+# Import the custom user model directly
+from accounts.models import CustomUser as User
 
 
 class DashboardView(LoginRequiredMixin, ListView):
@@ -219,6 +217,9 @@ class ExamCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Exam
     form_class = ExamForm
     template_name = 'exam/create_exam.html'
+
+    def test_func(self):
+        return self.request.user.is_teacher
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -566,6 +567,9 @@ class StudentExamView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         context['remaining_attempts'] = exam.get_remaining_attempts(student)
         context['max_attempts'] = exam.max_attempts
         
+        # Get exam status for this student - THIS WAS MISSING!
+        context['exam_status'] = exam.get_status_for_student(student)
+
         # Check for ongoing submission
         ongoing_submission = exam.submissions.filter(
             student=student, 
