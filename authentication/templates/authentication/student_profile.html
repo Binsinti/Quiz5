@@ -206,12 +206,12 @@
                                     <span class="badge bg-secondary">{{ count }}</span>
                                 </div>
                                 <div class="progress mb-3" style="height: 6px;">
-                                    <div class="progress-bar 
+                                    <div class="progress-bar
                                         {% if 'A' in grade_name %}bg-success{% endif %}
                                         {% if 'B' in grade_name %}bg-info{% endif %}
                                         {% if 'C' in grade_name %}bg-warning{% endif %}
                                         {% if 'D' in grade_name %}bg-orange{% endif %}
-                                        {% if 'F' in grade_name %}bg-danger{% endif %}" 
+                                        {% if 'F' in grade_name %}bg-danger{% endif %}"
                                         style="width: {% widthratio count total_exams_taken 100 %}%">
                                     </div>
                                 </div>

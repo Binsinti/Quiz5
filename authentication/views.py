@@ -258,6 +258,7 @@ class StudentProfileView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         context.update({
             'student': student,
             'total_exams': total_exams,
+            'total_exams_taken': total_exams_taken,  # Added missing variable
             'passed_exams': passed_exams,
             'failed_exams': failed_exams,
             'pass_rate': round(pass_rate, 1),
